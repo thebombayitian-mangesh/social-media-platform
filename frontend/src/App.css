@@ -1,0 +1,77 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f5f9;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+.topbar {
+  height: 65px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 35px;
+  border-bottom: 1px solid #ddd;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr 250px;
+  gap: 25px;
+  max-width: 1400px;
+  margin: auto;
+  padding: 25px;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar button {
+  border: none;
+  background: white;
+  text-align: left;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+.content {
+  max-width: 700px;
+}
+
+.create-post,
+.post,
+.panel,
+.info-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 12px;
+}
+
+.create-post button {
+  padding: 10px 20px;
+  margin-top: 10px;
+}
+
+.rightbar {
+  width: 100%;
+}
+
+.info-card p {
+  margin: 12px 0;
+}
