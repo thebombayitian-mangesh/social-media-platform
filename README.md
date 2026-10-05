@@ -1,392 +1,691 @@
 # Social Media Microservices Platform
 
+A distributed Social Media Platform built using **Java, Spring Boot, Spring Cloud, React and PostgreSQL**. The application follows a microservices architecture with **Eureka Service Discovery** and an **API Gateway**.
+
 ## Project Overview
 
-Social Media Microservices Platform is a backend application developed using Java and Spring Boot.
+This project is a microservices-based social media platform that provides core social networking features such as:
 
-The project follows a Microservices Architecture where different features are separated into independent services.
+* User management
+* Post creation and management
+* Like and unlike functionality
+* Comment management
+* Notifications
+* User-to-user chat
+* Media/file upload
+* Service discovery
+* API Gateway routing
+* PostgreSQL data persistence
+* React-based frontend
 
-The application provides functionality for:
-
-- User Management
-- Post Management
-- Like Management
-- Comment Management
-- Service Discovery
-- API Gateway
+The application is divided into independent services so that each business functionality can be developed, maintained and scaled independently.
 
 ---
 
 ## Architecture
 
 ```text
-                         ┌─────────────────────┐
-                         │     API Gateway     │
-                         │       :8080         │
-                         └──────────┬──────────┘
-                                    │
-              ┌─────────────────────┼─────────────────────┐
-              │                     │                     │
-              ▼                     ▼                     ▼
-      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-      │ User Service │      │ Post Service │      │ Like Service │
-      │    :8081     │      │    :8082     │      │    :8083     │
-      └──────────────┘      └──────────────┘      └──────────────┘
-              │                     │                     │
-              └─────────────────────┼─────────────────────┘
-                                    │
-                                    ▼
-                           ┌──────────────────┐
-                           │ Comment Service  │
-                           │      :8084       │
-                           └────────┬─────────┘
-                                    │
-                                    ▼
-                           ┌──────────────────┐
-                           │    PostgreSQL    │
-                           │ social_media_db  │
-                           └──────────────────┘
+                         React Frontend
+                            :5173
+                              |
+                              v
+                       API Gateway
+                            :8080
+                              |
+          +-------------------+-------------------+
+          |                   |                   |
+          v                   v                   v
+     User Service        Post Service       Like Service
+        :8081                :8082              :8083
+          |                   |                   |
+          +-------------------+-------------------+
+                              |
+                              v
+                       Comment Service
+                            :8084
+                              |
+                +-------------+-------------+
+                |                           |
+                v                           v
+       Notification Service             Chat Service
+              :8085                       :8086
+                                            |
+                                            v
+                                      Media Service
+                                          :8087
 
-                     ┌──────────────────────┐
-                     │   Eureka Server      │
-                     │      :8761           │
-                     │ Service Discovery    │
-                     └──────────────────────┘
-Microservices
-1. Service Discovery
+                         Eureka Server
+                             :8761
+                              |
+                              v
+                         PostgreSQL
+```
 
-Service: service-discovery
+---
 
-Port: 8761
+## Microservices
+
+### 1. Service Discovery
+
+**Port:** `8761`
 
 Technology:
 
-Netflix Eureka Server
-
-Purpose:
-
-Registers microservices
-Provides service discovery
-Allows services to communicate using service names
-2. API Gateway
-
-Service: api-gateway
-
-Port: 8080
-
-Purpose:
-
-Single entry point for client requests
-Routes requests to appropriate microservices
-Uses Eureka service discovery
-
-Routes:
-
-/api/users/**     → USER-SERVICE
-/api/posts/**     → POST-SERVICE
-/api/likes/**     → LIKE-SERVICE
-/api/comments/**  → COMMENT-SERVICE
-3. User Service
-
-Service: user-service
-
-Port: 8081
+* Spring Cloud Netflix Eureka
 
 Responsibilities:
 
-Create users
-Retrieve users
-Retrieve user by ID
-Delete users
+* Service registration
+* Service discovery
+* Maintaining registered service information
 
-Endpoints:
+---
 
-GET     /api/users
-GET     /api/users/{id}
-POST    /api/users
-DELETE  /api/users/{id}
-4. Post Service
+### 2. API Gateway
 
-Service: post-service
+**Port:** `8080`
 
-Port: 8082
+Technology:
+
+* Spring Cloud Gateway
 
 Responsibilities:
 
-Create posts
-Retrieve posts
-Retrieve post by ID
-Retrieve posts by user
-Delete posts
+* Central entry point for frontend requests
+* Request routing
+* Communication between frontend and backend services
 
-Endpoints:
+Example routes:
 
-GET     /api/posts
-GET     /api/posts/{id}
-GET     /api/posts/user/{userId}
-POST    /api/posts
-DELETE  /api/posts/{id}
-5. Like Service
+```text
+/api/users/**
+/api/posts/**
+/api/likes/**
+/api/comments/**
+/api/notifications/**
+/api/messages/**
+/api/media/**
+```
 
-Service: like-service
+---
 
-Port: 8083
+### 3. User Service
+
+**Port:** `8081`
 
 Responsibilities:
 
-Like posts
-Retrieve likes for a post
-Retrieve individual likes
-Remove likes
-Prevent duplicate likes from the same user on the same post
+* Create users
+* Get all users
+* Get user by ID
+* Delete users
 
-Endpoints:
+Main fields:
 
-POST    /api/likes
-GET     /api/likes/{id}
-GET     /api/likes/post/{postId}
-DELETE  /api/likes/{id}
+```text
+id
+name
+email
+```
+
+---
+
+### 4. Post Service
+
+**Port:** `8082`
+
+Responsibilities:
+
+* Create posts
+* Get all posts
+* Get post by ID
+* Get posts by user
+* Delete posts
+
+Main fields:
+
+```text
+id
+userId
+content
+```
+
+The Post Service also validates the user through the User Service before creating a post.
+
+---
+
+### 5. Like Service
+
+**Port:** `8083`
+
+Responsibilities:
+
+* Like a post
+* Get likes for a post
+* Get like by ID
+* Remove a like
+* Prevent duplicate likes
+
+Main fields:
+
+```text
+id
+userId
+postId
+```
+
+---
+
+### 6. Comment Service
+
+**Port:** `8084`
+
+Responsibilities:
+
+* Create comments
+* Get comments by post
+* Get comments by user
+* Get comment by ID
+* Delete comments
+
+Main fields:
+
+```text
+id
+userId
+postId
+content
+```
+
+---
+
+### 7. Notification Service
+
+**Port:** `8085`
+
+Responsibilities:
+
+* Create notifications
+* Get notifications for a user
+* Maintain notification read/unread status
 
 Example:
 
+```text
+User 1 liked your post
+You have a new comment on your post
+```
+
+---
+
+### 8. Chat Service
+
+**Port:** `8086`
+
+Responsibilities:
+
+* Send messages
+* Store messages
+* Retrieve messages for users
+
+The React frontend provides a dedicated Chat interface.
+
+---
+
+### 9. Media Service
+
+**Port:** `8087`
+
+Responsibilities:
+
+* Handle file uploads
+* Receive multipart file requests
+* Provide media functionality for the social platform
+
+---
+
+# Frontend
+
+The frontend is developed using **React and Vite**.
+
+**Frontend Port:** `5173`
+
+Main sections:
+
+* Home
+* Users
+* Chat
+* Notifications
+* Media
+
+## Frontend Features
+
+### Home
+
+* View posts
+* Create posts
+* Like posts
+* Add comments
+* View comments
+
+### Users
+
+* Display registered users
+
+### Chat
+
+* Select receiver
+* Send messages
+* View messages
+
+### Notifications
+
+* Display user notifications
+* Show read/unread status
+
+### Media
+
+* Select a file
+* Upload file
+* Display upload status
+
+---
+
+# Technology Stack
+
+| Technology            | Purpose                             |
+| --------------------- | ----------------------------------- |
+| Java 21               | Backend development                 |
+| Spring Boot 4.0.7     | Microservices                       |
+| Spring Cloud 2025.1.2 | Microservices infrastructure        |
+| Spring Cloud Gateway  | API Gateway                         |
+| Eureka                | Service Discovery                   |
+| Spring Data JPA       | Database access                     |
+| Hibernate             | ORM                                 |
+| PostgreSQL            | Database                            |
+| React                 | Frontend                            |
+| Vite                  | Frontend build tool                 |
+| JavaScript            | Frontend development                |
+| Maven                 | Backend build/dependency management |
+| REST API              | Service communication               |
+| Postman               | API testing                         |
+
+---
+
+# Database
+
+The project uses PostgreSQL.
+
+Database name:
+
+```text
+social_media_db
+```
+
+Database configuration:
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/social_media_db
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+```
+
+The application uses Spring Data JPA and Hibernate for database persistence.
+
+---
+
+# API Endpoints
+
+## User APIs
+
+```text
+GET    /api/users
+GET    /api/users/{id}
+POST   /api/users
+DELETE /api/users/{id}
+```
+
+Example:
+
+```json
+{
+  "name": "Mangesh",
+  "email": "mangesh@example.com"
+}
+```
+
+---
+
+## Post APIs
+
+```text
+GET    /api/posts
+GET    /api/posts/{id}
+GET    /api/posts/user/{userId}
+POST   /api/posts
+DELETE /api/posts/{id}
+```
+
+Example:
+
+```json
+{
+  "userId": 1,
+  "content": "Hello from Social Media Platform!"
+}
+```
+
+---
+
+## Like APIs
+
+```text
+POST   /api/likes
+GET    /api/likes/{id}
+GET    /api/likes/post/{postId}
+DELETE /api/likes/{id}
+```
+
+Example:
+
+```json
 {
   "userId": 1,
   "postId": 2
 }
-6. Comment Service
+```
 
-Service: comment-service
+---
 
-Port: 8084
+## Comment APIs
 
-Responsibilities:
-
-Create comments
-Retrieve comments
-Retrieve comments by post
-Retrieve comments by user
-Delete comments
-
-Endpoints:
-
-POST    /api/comments
-GET     /api/comments/{id}
-GET     /api/comments/post/{postId}
-GET     /api/comments/user/{userId}
-DELETE  /api/comments/{id}
+```text
+POST   /api/comments
+GET    /api/comments/{id}
+GET    /api/comments/post/{postId}
+GET    /api/comments/user/{userId}
+DELETE /api/comments/{id}
+```
 
 Example:
 
+```json
 {
   "userId": 1,
   "postId": 2,
-  "content": "Nice post!"
+  "content": "Great post!"
 }
-Technologies Used
-Java 21
-Spring Boot
-Spring Cloud
-Spring Web MVC
-Spring Data JPA
-Spring Cloud Netflix Eureka
-Spring Cloud API Gateway
-PostgreSQL
-Maven
-Postman
-IntelliJ IDEA
-Database
+```
 
-Database:
+---
 
-social_media_db
+## Notification APIs
 
-Database:
+```text
+POST /api/notifications
+GET  /api/notifications/user/{userId}
+```
 
-PostgreSQL
+---
 
-Username:
+## Chat APIs
 
-postgres
+```text
+POST /api/messages
+GET  /api/messages/user/{userId}
+```
 
-The application uses Spring Data JPA and Hibernate for database operations.
+Example:
 
-Main entities include:
-
-User
-Post
-Like
-Comment
-Configuration
-Eureka Server
-http://localhost:8761
-API Gateway
-http://localhost:8080
-User Service
-http://localhost:8081
-Post Service
-http://localhost:8082
-Like Service
-http://localhost:8083
-Comment Service
-http://localhost:8084
-How to Run the Project
-
-Start the services in the following order:
-
-Step 1
-
-Start:
-
-service-discovery
-
-Verify:
-
-http://localhost:8761
-Step 2
-
-Start:
-
-user-service
-
-Port:
-
-8081
-Step 3
-
-Start:
-
-post-service
-
-Port:
-
-8082
-Step 4
-
-Start:
-
-like-service
-
-Port:
-
-8083
-Step 5
-
-Start:
-
-comment-service
-
-Port:
-
-8084
-Step 6
-
-Start:
-
-api-gateway
-
-Port:
-
-8080
-
-All client requests should preferably be sent through the API Gateway.
-
-Example API Flow
-Create User
-POST http://localhost:8080/api/users
+```json
 {
-  "name": "Mangesh",
-  "email": "mangesh@gmail.com"
+  "senderId": 1,
+  "receiverId": 2,
+  "message": "Hello!"
 }
-Create Post
-POST http://localhost:8080/api/posts
-{
-  "userId": 1,
-  "content": "My first social media post"
-}
-Like Post
-POST http://localhost:8080/api/likes
-{
-  "userId": 1,
-  "postId": 1
-}
-Comment on Post
-POST http://localhost:8080/api/comments
-{
-  "userId": 1,
-  "postId": 1,
-  "content": "Nice post!"
-}
-Testing
+```
 
-The APIs were tested using Postman.
+---
 
-Tested functionality:
+## Media API
 
-User creation
-User retrieval
-User deletion
-Post creation
-Post retrieval
-Posts by user
-Like creation
-Like retrieval
-Duplicate like prevention
-Like deletion
-Comment creation
-Comments by post
-Comments by user
-Comment deletion
-API Gateway routing
-Eureka service registration
-PostgreSQL database operations
-Project Features
-Microservices Architecture
-Service Discovery using Eureka
-Centralized API Gateway
-RESTful APIs
-PostgreSQL Database
-Spring Data JPA
-Independent services
-CRUD operations
-Like management
-Comment management
-Duplicate like prevention
-Service registration and discovery
-Project Structure
+```text
+POST /api/media/upload
+```
+
+The endpoint accepts a multipart file upload together with the user information.
+
+---
+
+# Project Structure
+
+```text
 social-media-platform/
 │
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── App.css
+│   │   ├── index.css
+│   │   └── main.jsx
+│   └── package.json
+│
 ├── api-gateway/
-│
-├── comment-service/
-│
-├── like-service/
-│
-├── post-service/
 │
 ├── service-discovery/
 │
 ├── user-service/
 │
-└── README.md
-Future Enhancements
+├── post-service/
+│
+├── like-service/
+│
+├── comment-service/
+│
+├── notification-service/
+│
+├── chat-service/
+│
+├── media-service/
+│
+├── README.md
+└── .gitignore
+```
 
-The project can be extended with:
+---
 
-JWT Authentication
-User Login and Registration
-Follow/Unfollow functionality
-Notifications
-Image/File Upload
-Frontend application
-Search functionality
-Pagination
-Docker containerization
-Centralized logging
-Distributed tracing
-Author
+# Requirements
 
-Mangesh Pathak
+Before running the project, install:
+
+* Java 21
+* Maven
+* PostgreSQL
+* Node.js
+* npm
+* IntelliJ IDEA or another Java IDE
+* Git
+
+---
+
+# Database Setup
+
+Create the PostgreSQL database:
+
+```sql
+CREATE DATABASE social_media_db;
+```
+
+Make sure PostgreSQL is running before starting the backend services.
+
+---
+
+# How to Run the Backend
+
+Start the services in the following order.
+
+### 1. Start Service Discovery
+
+```text
+service-discovery
+Port: 8761
+```
+
+### 2. Start API Gateway
+
+```text
+api-gateway
+Port: 8080
+```
+
+### 3. Start Business Services
+
+```text
+user-service          :8081
+post-service          :8082
+like-service          :8083
+comment-service       :8084
+notification-service  :8085
+chat-service          :8086
+media-service         :8087
+```
+
+Open the Eureka dashboard:
+
+```text
+http://localhost:8761
+```
+
+Verify that the services are registered.
+
+---
+
+# How to Run the Frontend
+
+Open a terminal inside the frontend directory:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The React application will be available at:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# Testing
+
+The application has been tested using the React frontend and REST APIs.
+
+Tested functionality includes:
+
+* User creation
+* User retrieval
+* Post creation
+* Post retrieval
+* Like functionality
+* Duplicate like prevention
+* Comment creation
+* Comment retrieval
+* Comment deletion
+* Notification functionality
+* Chat service
+* Media upload
+* API Gateway routing
+* Eureka service registration
+* PostgreSQL persistence
+
+---
+
+# Scalability
+
+The microservices architecture allows individual services to be scaled independently.
+
+For example, multiple instances of the Post Service can be deployed if post traffic increases.
+
+Benefits:
+
+* Independent scaling
+* Service isolation
+* Independent deployment
+* Better resource utilization
+* Easier maintenance
+
+---
+
+# Monitoring
+
+Spring Boot Actuator can be used for application health and monitoring.
+
+Important monitoring areas include:
+
+* Service availability
+* API response time
+* Error rate
+* Database connectivity
+* JVM memory
+* CPU usage
+* Service registration
+
+Future monitoring tools can include:
+
+* Prometheus
+* Grafana
+* ELK Stack
+
+---
+
+# Future Enhancements
+
+The following features can be added in future versions:
+
+* JWT authentication
+* Spring Security
+* User registration/login
+* Follow/friend system
+* WebSocket-based real-time chat
+* Redis caching
+* Kafka or RabbitMQ messaging
+* Docker Compose deployment
+* Kubernetes deployment
+* Cloud deployment
+* Prometheus/Grafana monitoring
+* Centralized logging
+* Advanced search
+* Recommendation system
+
+---
+
+# Screenshots
+
+The project documentation contains screenshots of the following:
+
+1. React Home Dashboard
+2. Post Creation
+3. Users Page
+4. Like and Comment
+5. Notifications
+6. Chat
+7. Media Upload
+8. Eureka Dashboard
+9. API Testing
+
+---
+
+# Author
+
+**Mangesh Pathak**
 
 Social Media Microservices Platform
+Java | Spring Boot | Spring Cloud | React | PostgreSQL
 
-Built using Java, Spring Boot, Spring Cloud and PostgreSQL.
+---
+
+# License
+
+This project is developed for educational and project submission purposes.
